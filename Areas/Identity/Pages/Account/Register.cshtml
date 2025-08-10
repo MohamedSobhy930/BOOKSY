@@ -1,0 +1,112 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<h1 class="text-center my-4">@ViewData["Title"]</h1>
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Email -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="name@example.com" />
+                <label asp-for="Input.Email">Email</label>
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+
+            <!-- Name -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Name" class="form-control" autocomplete="username" placeholder="Enter Name" />
+                <label asp-for="Input.Name">Name</label>
+                <span asp-validation-for="Input.Name" class="text-danger"></span>
+            </div>
+
+            <!-- Password -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" placeholder="Enter password" />
+                <label asp-for="Input.Password">Password</label>
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" placeholder="Confirm password" />
+                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <!-- City -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.City" class="form-control" placeholder="Enter city" />
+                <label asp-for="Input.City">City</label>
+                <span asp-validation-for="Input.City" class="text-danger"></span>
+            </div>
+
+            <!-- State -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.State" class="form-control" placeholder="Enter state" />
+                <label asp-for="Input.State">State</label>
+                <span asp-validation-for="Input.State" class="text-danger"></span>
+            </div>
+
+            <!-- Street Address -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.StreetAddress" class="form-control" placeholder="Enter street address" />
+                <label asp-for="Input.StreetAddress">Street Address</label>
+                <span asp-validation-for="Input.StreetAddress" class="text-danger"></span>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.PhoneNumber" class="form-control" autocomplete="tel" placeholder="Enter phone number" />
+                <label asp-for="Input.PhoneNumber">Phone Number</label>
+                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <!-- Role -->
+            <div class="form-floating mb-3">
+                <select asp-for="Input.Role" asp-items="Model.Input.RoleList" class="form-select">
+                    <option disabled selected>-- Select Role --</option>
+                </select>
+                <label asp-for="Input.Role">Role</label>
+                <span asp-validation-for="Input.Role" class="text-danger"></span>
+            </div>
+
+            <!-- Register Button -->
+            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary mt-3">
+                <i class="bi bi-person-plus"></i> Register
+            </button>
+
+            <!-- OR separator -->
+            @* <div class="d-flex align-items-center my-4">
+                <hr class="flex-grow-1" />
+                <span class="mx-2 text-muted">or</span>
+                <hr class="flex-grow-1" />
+            </div> *@
+
+            <!-- External Logins -->
+            @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+            {
+                <div>
+                    @foreach (var provider in Model.ExternalLogins)
+                    {
+                        <button type="submit" class="btn btn-outline-dark w-100 mb-2"
+                                name="provider" value="@provider.Name"
+                                title="Register using your @provider.DisplayName account">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Register with @provider.DisplayName
+                        </button>
+                    }
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
