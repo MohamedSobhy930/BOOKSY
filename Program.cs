@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using BOOKSY.Utility;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using BOOKSY.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Stripe;
 
 namespace BOOKSY
 {
@@ -20,6 +22,7 @@ namespace BOOKSY
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("ConnStr")));
 
+
             builder.Services.AddIdentity<AppUser, IdentityRole>()
                .AddEntityFrameworkStores<AppDbContext>()
                .AddDefaultTokenProviders();
@@ -32,9 +35,9 @@ namespace BOOKSY
                 options.Cookie.IsEssential = true; 
             });
 
-     
-            builder.Services.AddRazorPages();
+            builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 
+            builder.Services.AddRazorPages();
 
             builder.Services.ConfigureApplicationCookie(options =>
             {
@@ -43,12 +46,6 @@ namespace BOOKSY
                 options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
             }
             );
-            //builder.Services.AddAuthentication()
-            //.AddGoogle(options =>
-            //{
-            //    options.ClientId = "760142150483 - cjdl5745l3s4jmjiv4fnf74d7cltkub7.apps.googleusercontent.com";
-            //    options.ClientSecret = "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";
-            //});
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -64,11 +61,11 @@ namespace BOOKSY
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
+            StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe")["SecretKey"];
             app.UseRouting();
+            app.UseSession();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseSession();
             app.MapRazorPages();
             app.MapControllerRoute(
                 name: "default",

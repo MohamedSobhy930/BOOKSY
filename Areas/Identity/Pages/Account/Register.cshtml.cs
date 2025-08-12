@@ -21,6 +21,8 @@ using Microsoft.Extensions.Logging;
 using BOOKSY.Models;
 using BOOKSY.Utility;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using BOOKSY.DataAccess.Repository.IRepository;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace BOOKSY.Areas.Identity.Pages.Account
 {
@@ -33,6 +35,7 @@ namespace BOOKSY.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<AppUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly IUnitOfWork _unitOfWork;
 
         public RegisterModel(
             UserManager<AppUser> userManager,
@@ -40,7 +43,8 @@ namespace BOOKSY.Areas.Identity.Pages.Account
             RoleManager<IdentityRole> roleManager,
             SignInManager<AppUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -49,6 +53,7 @@ namespace BOOKSY.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _unitOfWork = unitOfWork;
         }
 
         /// <summary>
@@ -112,6 +117,9 @@ namespace BOOKSY.Areas.Identity.Pages.Account
             public string City { get; set; }
             public string State { get; set; }
             public string PhoneNumber { get; set; }
+            public int CompanyId { get; set; }
+            [ValidateNever]
+            public IEnumerable<SelectListItem> CompanyList { get; set; }
         }
 
 
@@ -126,10 +134,15 @@ namespace BOOKSY.Areas.Identity.Pages.Account
             }
             Input = new()
                 {
-                RoleList = _roleManager.Roles.Select(r => new SelectListItem
+                RoleList = _roleManager.Roles.Select(x => x.Name).Select(r => new SelectListItem
                 {
-                    Text = r.Name,
-                    Value = r.Name
+                    Text = r,
+                    Value = r
+                }),
+                CompanyList = _unitOfWork.Company.GetAll().Select(c => new SelectListItem
+                {
+                    Text = c.Name,
+                    Value = c.Id.ToString()
                 })
             };
             ReturnUrl = returnUrl;
@@ -151,6 +164,10 @@ namespace BOOKSY.Areas.Identity.Pages.Account
                 user.City = Input.City;
                 user.State = Input.State;
                 user.PhoneNumber = Input.PhoneNumber;
+                if(Input.Role == SD.Role_User_Company)
+                {
+                    user.CompanyId = Input.CompanyId;
+                }
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
