@@ -153,13 +153,14 @@ namespace BOOKSY.Areas.Customer.Controllers
                 }
                 if (appUser.CompanyId.GetValueOrDefault() == 0)
                 {
-                    var domain = "https://localhost:5223/";
+                    var domain = "https://127.0.0.1:5223/";
                     var options = new SessionCreateOptions
                     {
                         SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={shoppingCartVM.OrderHeader.Id}",
                         CancelUrl = domain + "customer/cart/index",
                         LineItems = new List<SessionLineItemOptions>(),
                         Mode = "payment",
+                        PaymentMethodTypes = new List<string> { "card" },
                     };
                     foreach (var item in shoppingCartVM.ShoppingCartList)
                     {
@@ -184,30 +185,29 @@ namespace BOOKSY.Areas.Customer.Controllers
                     _unitOfWork.OrderHeader.UpdateStripePaymentId(shoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
                     _unitOfWork.Save();
 
-                    Response.Headers.Add("Location", session.Url);
-                    return new StatusCodeResult(303);
-                    //TempData["StripeUrl"] = session.Url;
-                    //return RedirectToAction("StripeRedirect");
+                    return Redirect(session.Url);
+
 
                 }
                 return RedirectToAction("OrderConfirmation", new { id = shoppingCartVM.OrderHeader.Id });
             }
+            catch (StripeException stripeEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"Stripe Error: {stripeEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stripe Error Code: {stripeEx.StripeError?.Code}");
+                System.Diagnostics.Debug.WriteLine($"Stripe Error Type: {stripeEx.StripeError?.Type}");
+                TempData["Error"] = $"Payment error: {stripeEx.Message}";
+                return RedirectToAction("Index");
+            }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"CheckOut Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"General Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
                 TempData["Error"] = "An error occurred during checkout. Please try again.";
                 return RedirectToAction("Index");
             }
         }
-        public IActionResult StripeRedirect()
-        {
-            if (TempData["StripeUrl"] != null)
-            {
-                ViewBag.StripeUrl = TempData["StripeUrl"].ToString();
-                return View("StripeRedirect");
-            }
-            return RedirectToAction("Index", "Home");
-        }
+        
         public IActionResult OrderConfirmation(int id)
         {
             var orderHeaderFromDb = _unitOfWork.OrderHeader.Get(u => u.Id == id, IncludeProperties: "AppUser");

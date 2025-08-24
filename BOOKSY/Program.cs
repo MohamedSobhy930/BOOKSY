@@ -32,10 +32,13 @@ namespace BOOKSY
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(60);
                 options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true; 
+                options.Cookie.IsEssential = true;
             });
 
             builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+            StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
+            //builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 
             builder.Services.AddRazorPages();
 
@@ -61,7 +64,6 @@ namespace BOOKSY
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe")["SecretKey"];
             app.UseRouting();
             app.UseSession();
             app.UseAuthentication();
@@ -70,7 +72,10 @@ namespace BOOKSY
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
-
+            app.MapControllerRoute(
+                name: "checkout",
+                pattern: "checkout/{action=Index}/{id?}",
+                defaults: new { controller = "Checkout", action = "Index" });
             app.Run();
         }
     }
